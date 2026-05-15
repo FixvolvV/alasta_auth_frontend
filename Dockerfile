@@ -1,30 +1,15 @@
-# Stage 1: Build React app
-FROM node:20-alpine AS builder
+FROM node:lts-alpine AS build-stage
 
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
-
-# Copy source code
 COPY . .
-
-# Build
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+FROM caddy:2-alpine
 
-# Copy custom nginx config
-COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY Caddyfile /etc/caddy/Caddyfile
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=build-stage /app/dist /srv
 
-# Expose port
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

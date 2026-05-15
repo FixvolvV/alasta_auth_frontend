@@ -1,0 +1,61 @@
+http://:80 {
+  root * /srv
+  encode gzip zstd
+
+  try_files {path} /index.html
+  file_server
+
+  @static {
+    path_regexp static \.(css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|ico)$
+  }
+  header @static Cache-Control "public, max-age=2592000, immutable"
+
+  @assets path /assets/*
+  header @assets Cache-Control "public, max-age=2592000"
+}
+
+http://:8000 {
+
+  request_body {
+    max_size 100MB
+  }
+
+  @api path /api/*
+  reverse_proxy @api backend:8000 {
+
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up Host {host}
+
+    transport http {
+      read_timeout 3600s
+      write_timeout 3600s
+    }
+
+  }
+
+  respond 404
+}
+
+http://:9000 {
+
+  request_body {
+    max_size 100MB
+  }
+
+  @api path /*
+  reverse_proxy @api minio:9000 {
+
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up Host {host}
+
+    transport http {
+      read_timeout 3600s
+      write_timeout 3600s
+    }
+
+  }
+
+  respond 404
+}
