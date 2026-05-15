@@ -59,7 +59,7 @@ interface ApiLog {
 // Config
 // =============================================================================
 
-const API_BASE = window.location.port === '5173' ? 'http://localhost:8000' : '';
+const API_BASE = window.location.port === '5173' ? 'http://localhost:8000' : 'https://api.fixvolvv.ru';
 const CSRF_STORAGE_KEY = 'alastaauth_csrf_token';
 
 const getCsrfToken = (): string | null => localStorage.getItem(CSRF_STORAGE_KEY);
